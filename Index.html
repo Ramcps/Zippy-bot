@@ -1,206 +1,140 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zippy Bot</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            max-width: 700px;
-            margin: 20px auto;
-            padding: 10px;
-            background: linear-gradient(to bottom, #e0f7fa, #f4f4f4);
-        }
-        .form-container {
-            padding: 25px;
-            border-radius: 15px;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-        }
-        h2 {
-            text-align: center;
-            color: #1a73e8;
-            margin-bottom: 20px;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            font-size: 16px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #1a73e8;
-            box-shadow: 0 0 5px rgba(26, 115, 232, 0.3);
-        }
-        button {
-            background: #25D366;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #20b958;
-        }
-        #viewBookings {
-            background: #1a73e8;
-        }
-        #viewBookings:hover {
-            background: #1557b0;
-        }
-        #confirmation {
-            display: none;
-            color: #25D366;
-            font-size: 18px;
-            text-align: center;
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px solid #25D366;
-            border-radius: 8px;
-            background: #e8f5e9;
-        }
-        #bookingsList {
-            margin-top: 20px;
-            display: none;
-        }
-        #bookingsList p {
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-            background: #f9f9f9;
-            border-radius: 5px;
-            margin: 5px 0;
-        }
-        @media (max-width: 600px) {
-            input, select, button {
-                font-size: 14px;
-            }
-            .form-container {
-                padding: 15px;
-            }
-            h2 {
-                font-size: 24px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <h2>Zippy Bot - Hotel Booking</h2>
-    <div class="form-container">
-        <form id="bookingForm">
-            <input type="text" id="city" placeholder="Enter city (e.g., Hyderabad)" required>
-            <select id="hotel" required>
-                <option value="" disabled selected>Select hotel</option>
-                <option value="Taj Krishna">Taj Krishna</option>
-                <option value="Novotel">Novotel</option>
-                <option value="ITC Grand">ITC Grand</option>
-            </select>
-            <select id="roomType" required>
-                <option value="" disabled selected>Select room type</option>
-                <option value="Deluxe">Deluxe</option>
-                <option value="Suite">Suite</option>
-                <option value="Standard">Standard</option>
-            </select>
-            <input type="date" id="checkIn" placeholder="Check-in date" required>
-            <input type="date" id="checkOut" placeholder="Check-out date" required>
-            <input type="number" id="guests" placeholder="Number of guests (min 1)" min="1" required>
-            <button type="submit">Book via WhatsApp</button>
-        </form>
-        <p id="confirmation"></p>
-        <button id="viewBookings">View Past Bookings</button>
-        <div id="bookingsList"></div>
-    </div>
 
-    <script>
-        document.getElementById("bookingForm").addEventListener("submit", function(e) {
-            e.preventDefault();
-            let city = document.getElementById("city").value.trim();
-            let hotel = document.getElementById("hotel").value;
-            let roomType = document.getElementById("roomType").value;
-            let checkIn = new Date(document.getElementById("checkIn").value);
-            let checkOut = new Date(document.getElementById("checkOut").value);
-            let guests = parseInt(document.getElementById("guests").value);
-            let today = new Date();
-            today.setHours(0, 0, 0, 0);
 
-            // Validation
-            if (!city || city.length < 2) {
-                alert("Please enter a valid city name (min 2 characters).");
-                return;
-            }
-            if (!hotel) {
-                alert("Please select a hotel.");
-                return;
-            }
-            if (!roomType) {
-                alert("Please select a room type.");
-                return;
-            }
-            if (!checkIn || checkIn < today) {
-                alert("Check-in date must be today or later.");
-                return;
-            }
-            if (!checkOut || checkOut <= checkIn) {
-                alert("Check-out date must be after check-in date.");
-                return;
-            }
-            if (!guests || guests < 1) {
-                alert("Number of guests must be at least 1.");
-                return;
-            }
 
-            // Simulate booking
-            let booking = {
-                city: city,
-                hotel: hotel,
-                roomType: roomType,
-                checkIn: checkIn.toISOString().split('T')[0],
-                checkOut: checkOut.toISOString().split('T')[0],
-                guests: guests,
-                bookingId: `ZIPPY${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
-            };
+    
 
-            // Save to localStorage
-            let bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-            bookings.push(booking);
-            localStorage.setItem("bookings", JSON.stringify(bookings));
+    
 
-            // WhatsApp message
-            let message = `Zippy Bot Booking Request:\nHotel: ${hotel}, ${city}\nRoom Type: ${roomType}\nGuests: ${guests}\nCheck-in: ${booking.checkIn}\nCheck-out: ${booking.checkOut}\nBooking ID: ${booking.bookingId}\nPlease confirm this booking or suggest other options (e.g., different room or hotel).`;
-            let waNumber = "YOUR_PHONE_NUMBER"; // Replace with your WhatsApp number (e.g., +919876543210)
-            let waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
-            try {
-                window.open(waLink, '_blank') || alert("Failed to open WhatsApp. Please check your connection.");
-            } catch (error) {
-                alert("Error sending booking request. Try again later.");
-            }
+    Zippy Bot - Hotel Assistance
 
-            // Show confirmation
-            document.getElementById("confirmation").style.display = "block";
-            document.getElementById("confirmation").innerText = 
-                `Booking Request Sent!\nBooking ID: ${booking.bookingId}\nHotel: ${hotel}, ${city}\nRoom: ${roomType}\nGuests: ${guests}\nDates: ${booking.checkIn} to ${booking.checkOut}\nCheck WhatsApp for confirmation!`;
-            document.getElementById("bookingForm").reset();
-        });
+    
 
-        // View past bookings
-        document.getElementById("viewBookings").addEventListener("click", function() {
-            let bookings = JSON.parse(localStorage.getItem("bookings") || "[]");
-            let bookingsList = document.getElementById("bookingsList");
-            bookingsList.style.display = "block";
-            if (bookings.length === 0) {
-                bookingsList.innerText = "No bookings found.";
-                return;
-            }
-            bookingsList.innerHTML = "<h3>Past Bookings</h3>";
-            bookings.forEach(booking => {
-                bookingsList.innerHTML += `<p>Booking ID: ${booking.bookingId} | Hotel: ${booking.hotel}, ${booking.city} | Room: ${booking.roomType} | Guests: ${booking.guests} | Dates: ${booking.checkIn} to ${booking.checkOut}</p>`;
+    
+
+    
+
+
+
+    
+        Zippy Bot - Hotel Assistance
+
+        
+
+        
+            
+            
+        
+
+    
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+
+    function createMessage(text, sender, options = []) {
+        const msg = document.createElement('div');
+        msg.classList.add('message', sender);
+        msg.innerHTML = text;
+
+        const avatar = document.createElement('img');
+        avatar.classList.add('avatar');
+        avatar.src = sender === 'bot' ? 'https://i.ibb.co/9GFP6vK/zippy-avatar.png' : 'https://i.ibb.co/KDGQ2cW/user-avatar.png';
+        msg.appendChild(avatar);
+
+        if (options.length > 0 && sender === 'bot') {
+            const optionsContainer = document.createElement('div');
+            optionsContainer.classList.add('options-container');
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.classList.add('option-button');
+                btn.textContent = opt.text;
+                btn.onclick = () => {
+                    addMessage(opt.text, 'user');
+                    opt.action(opt.value);
+                };
+                optionsContainer.appendChild(btn);
             });
-        });
-    </script>
-</body>
-</html>
+            msg.appendChild(optionsContainer);
+        }
+
+        chatBox.appendChild(msg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function addMessage(text, sender, options = []) {
+        removeTyping();
+        setTimeout(() => createMessage(text, sender, options), 400);
+    }
+
+    function showTyping() {
+        const typing = document.createElement('div');
+        typing.className = 'typing-indicator';
+        typing.id = 'typing';
+        typing.innerText = 'Zippy Bot is typing...';
+        chatBox.appendChild(typing);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function removeTyping() {
+        const typing = document.getElementById('typing');
+        if (typing) typing.remove();
+    }
+
+    function showWelcome() {
+        showTyping();
+        setTimeout(() => addMessage("Hello! I'm <strong>Zippy Bot</strong>, your hotel assistant. How can I help you today?", 'bot', [
+            { text: 'Check Room Availability', value: 'check', action: handleOption },
+            { text: 'Book a Room', value: 'book', action: handleOption },
+            { text: 'Support', value: 'support', action: handleOption },
+            { text: 'Restaurant Menu', value: 'menu', action: handleOption },
+            { text: 'Nearby Attractions', value: 'attractions', action: handleOption },
+            { text: 'Spa Services', value: 'spa', action: handleOption }
+        ]), 800);
+    }
+
+    function handleOption(value) {
+        switch(value) {
+            case 'check':
+                addMessage("Here are our room types and availability for today:<br><b>Deluxe Room:</b> ₹3500<br><b>Suite:</b> ₹6000", 'bot');
+                break;
+            case 'book':
+                addMessage("Please enter your full name and preferred room type to proceed with the booking.", 'bot');
+                break;
+            case 'support':
+                addMessage("For support, call us at +91-9876543210 or email support@zippyhotel.com", 'bot');
+                break;
+            case 'menu':
+                addMessage("Here is today's restaurant menu:<br>- Breakfast: Idli, Dosa, Coffee<br>- Lunch: Veg Thali, Chicken Biryani<br>- Dinner: Roti, Paneer Curry, Curd Rice", 'bot');
+                break;
+            case 'attractions':
+                addMessage("Nearby Attractions:<br>1. City Park - 2km<br>2. Waterfall Viewpoint - 5km<br>3. Museum of Culture - 1.5km", 'bot');
+                break;
+            case 'spa':
+                addMessage("Spa Services:<br>- Swedish Massage: ₹2000/hr<br>- Aromatherapy: ₹2500/hr<br>- Foot Reflexology: ₹1200/30min", 'bot');
+                break;
+            default:
+                addMessage("Let me know how I can assist you.", 'bot');
+        }
+    }
+
+    sendBtn.addEventListener('click', () => {
+        const text = userInput.value.trim();
+        if (!text) return;
+        addMessage(text, 'user');
+        userInput.value = '';
+        setTimeout(() => addMessage("Thanks for your message. How else can I help?", 'bot'), 800);
+    });
+
+    userInput.addEventListener('keypress', e => {
+        if (e.key === 'Enter') sendBtn.click();
+    });
+
+    window.onload = showWelcome;
+</script>
+
+
+
+
+
+
