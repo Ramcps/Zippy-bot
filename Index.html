@@ -1,140 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zippy Bot - Hotel Assistance</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f4; display: flex; flex-direction: column; align-items: center; }
+        #chat-container { width: 100%; max-width: 600px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
+        #chat-box { height: 400px; padding: 20px; overflow-y: auto; border-bottom: 1px solid #eee; display: flex; flex-direction: column; }
+        .message { margin-bottom: 10px; padding: 8px 12px; border-radius: 5px; max-width: 80%; }
+        .message.user { align-self: flex-end; background-color: #dcf8c6; }
+        .message.bot { align-self: flex-start; background-color: #e2e2e2; }
+        .message.bot .options-container { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .message.bot .option-button {
+            padding: 8px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .message.bot .option-button:hover { background-color: #0056b3; }
 
+        #input-container { display: flex; padding: 20px; border-top: 1px solid #eee; }
+        #user-input { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-right: 10px; }
+        #send-btn { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #send-btn:hover { background-color: #0056b3; }
+        #quick-actions { display: flex; justify-content: space-around; padding: 10px 20px; background-color: #f9f9f9; border-top: 1px solid #eee; }
+        .action-btn { padding: 10px 15px; background-color: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        .action-btn:hover { background-color: #5a6268; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Zippy Bot!</h1>
+    <div id="chat-container">
+        <div id="chat-box"></div>
+        <div id="quick-actions">
+            <button class="action-btn" id="bookRoomsBtn">Book a Room</button>
+            <button class="action-btn" id="checkAvailabilityBtn">Check Room Availability & Prices</button>
+            <button class="action-btn" id="supportBtn">Support</button>
+        </div>
+        <div id="input-container">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button id="send-btn">Send</button>
+        </div>
+    </div>
 
+    <script>
+        const chatBox = document.getElementById('chat-box');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const bookRoomsBtn = document.getElementById('bookRoomsBtn');
+        const checkAvailabilityBtn = document.getElementById('checkAvailabilityBtn');
+        const supportBtn = document.getElementById('supportBtn');
 
-    
+        // State to manage the conversation flow
+        let conversationState = null; // 'booking', 'availability', 'support', 'room_type_booking', 'ac_type_booking', etc.
 
-    
+        function addMessage(text, sender, options = []) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender);
+            messageElement.innerHTML = text;
 
-    Zippy Bot - Hotel Assistance
+            if (options.length > 0) {
+                const optionsContainer = document.createElement('div');
+                optionsContainer.classList.add('options-container');
+                options.forEach(option => {
+                    const optionButton = document.createElement('button');
+                    optionButton.classList.add('option-button');
+                    optionButton.textContent = option.text;
+                    optionButton.onclick = () => option.action(option.text);
+                    optionsContainer.appendChild(optionButton);
+                });
+                messageElement.appendChild(optionsContainer);
+            }
 
-    
-
-    
-
-    
-
-
-
-    
-        Zippy Bot - Hotel Assistance
-
-        
-
-        
-            
-            
-        
-
-    
-
-<script>
-    const chatBox = document.getElementById('chat-box');
-    const userInput = document.getElementById('user-input');
-    const sendBtn = document.getElementById('send-btn');
-
-    function createMessage(text, sender, options = []) {
-        const msg = document.createElement('div');
-        msg.classList.add('message', sender);
-        msg.innerHTML = text;
-
-        const avatar = document.createElement('img');
-        avatar.classList.add('avatar');
-        avatar.src = sender === 'bot' ? 'https://i.ibb.co/9GFP6vK/zippy-avatar.png' : 'https://i.ibb.co/KDGQ2cW/user-avatar.png';
-        msg.appendChild(avatar);
-
-        if (options.length > 0 && sender === 'bot') {
-            const optionsContainer = document.createElement('div');
-            optionsContainer.classList.add('options-container');
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.classList.add('option-button');
-                btn.textContent = opt.text;
-                btn.onclick = () => {
-                    addMessage(opt.text, 'user');
-                    opt.action(opt.value);
-                };
-                optionsContainer.appendChild(btn);
-            });
-            msg.appendChild(optionsContainer);
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the latest message
         }
 
-        chatBox.appendChild(msg);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function addMessage(text, sender, options = []) {
-        removeTyping();
-        setTimeout(() => createMessage(text, sender, options), 400);
-    }
-
-    function showTyping() {
-        const typing = document.createElement('div');
-        typing.className = 'typing-indicator';
-        typing.id = 'typing';
-        typing.innerText = 'Zippy Bot is typing...';
-        chatBox.appendChild(typing);
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function removeTyping() {
-        const typing = document.getElementById('typing');
-        if (typing) typing.remove();
-    }
-
-    function showWelcome() {
-        showTyping();
-        setTimeout(() => addMessage("Hello! I'm <strong>Zippy Bot</strong>, your hotel assistant. How can I help you today?", 'bot', [
-            { text: 'Check Room Availability', value: 'check', action: handleOption },
-            { text: 'Book a Room', value: 'book', action: handleOption },
-            { text: 'Support', value: 'support', action: handleOption },
-            { text: 'Restaurant Menu', value: 'menu', action: handleOption },
-            { text: 'Nearby Attractions', value: 'attractions', action: handleOption },
-            { text: 'Spa Services', value: 'spa', action: handleOption }
-        ]), 800);
-    }
-
-    function handleOption(value) {
-        switch(value) {
-            case 'check':
-                addMessage("Here are our room types and availability for today:<br><b>Deluxe Room:</b> ₹3500<br><b>Suite:</b> ₹6000", 'bot');
-                break;
-            case 'book':
-                addMessage("Please enter your full name and preferred room type to proceed with the booking.", 'bot');
-                break;
-            case 'support':
-                addMessage("For support, call us at +91-9876543210 or email support@zippyhotel.com", 'bot');
-                break;
-            case 'menu':
-                addMessage("Here is today's restaurant menu:<br>- Breakfast: Idli, Dosa, Coffee<br>- Lunch: Veg Thali, Chicken Biryani<br>- Dinner: Roti, Paneer Curry, Curd Rice", 'bot');
-                break;
-            case 'attractions':
-                addMessage("Nearby Attractions:<br>1. City Park - 2km<br>2. Waterfall Viewpoint - 5km<br>3. Museum of Culture - 1.5km", 'bot');
-                break;
-            case 'spa':
-                addMessage("Spa Services:<br>- Swedish Massage: ₹2000/hr<br>- Aromatherapy: ₹2500/hr<br>- Foot Reflexology: ₹1200/30min", 'bot');
-                break;
-            default:
-                addMessage("Let me know how I can assist you.", 'bot');
+        function showInitialInfo() {
+            addMessage("Hello! I'm Zippy Bot, your hotel assistant. How can I help you today? You can use the buttons below for quick actions, or type your query.", 'bot');
         }
-    }
 
-    sendBtn.addEventListener('click', () => {
-        const text = userInput.value.trim();
-        if (!text) return;
-        addMessage(text, 'user');
-        userInput.value = '';
-        setTimeout(() => addMessage("Thanks for your message. How else can I help?", 'bot'), 800);
-    });
+        sendBtn.addEventListener('click', () => {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage(message, 'user');
+                userInput.value = '';
+                handleUserMessage(message);
+            }
+        });
 
-    userInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') sendBtn.click();
-    });
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendBtn.click();
+            }
+        });
 
-    window.onload = showWelcome;
-</script>
+        // Main function to handle user messages based on the conversation state
+        function handleUserMessage(message) {
+            switch (conversationState) {
+                case 'booking_nights':
+                    const nights = parseInt(message);
+                    if (!isNaN(nights) && nights > 0) {
+                        conversationState = 'booking_contact';
+                        addMessage(`Great! You want to book for ${nights} nights. Now, please provide your **name and contact number** so we can confirm your booking.`, 'bot');
+                    } else {
+                        addMessage("Please enter a valid number of nights.", 'bot');
+                    }
+                    break;
+                case 'booking_contact':
+                    // In a real scenario, you'd parse name and contact and confirm booking
+                    addMessage(`Thank you for providing your details. We have received your booking request for a ${currentRoomType} for ${currentNights} nights. Our team will contact you shortly to confirm the booking.`, 'bot');
+                    conversationState = null; // Reset state
+                    break;
+                case 'availability_dates':
+                    // In a real scenario, you'd parse dates and number of guests
+                    addMessage("Thank you! Please provide the **number of guests**.", 'bot');
+                    conversationState = 'availability_guests';
+                    break;
+                case 'availability_guests':
+                    // In a real scenario, you'd search for availability and display results
+                    addMessage("Searching for available rooms and prices based on your criteria...", 'bot');
+                    // Simulate a delay and show results
+                    setTimeout(() => {
+                        addMessage("Here are the available rooms and their prices for your dates:<br><br><b>Standard Non-AC:</b> ₹2000/night<br><b>Deluxe AC:</b> ₹3500/night<br><b>Suite AC:</b> ₹6000/night", 'bot');
+                        conversationState = null; // Reset state
+                    }, 1500);
+                    break;
+                case 'support':
+                    addMessage("Thank you for reaching out. Your issue has been logged, and our support team will get back to you shortly.", 'bot');
+                    conversationState = null; // Reset state
+                    break;
+                default:
+                    addMessage("I'm not sure how to respond to that. Please use the quick actions or ask a specific question.", 'bot');
+                    break;
+            }
+        }
 
+        // Global variables to store booking details temporarily
+        let currentRoomType = '';
+        let currentNights = 0;
 
+        // --- Booking Flow ---
+        bookRoomsBtn.addEventListener('click', () => {
+            addMessage("What type of room would you like to book?", 'bot', [
+                { text: "AC Room", action: selectAcOrNonAc },
+                { text: "Non-AC Room", action: selectAcOrNonAc }
+            ]);
+            conversationState = 'room_type_booking';
+        });
 
+        function selectAcOrNonAc(type) {
+            addMessage(`You selected: ${type}`, 'user'); // Show user's choice
+            currentRoomType = type; // Store the selected room type
 
+            if (type === "AC Room") {
+                addMessage("Great! What type of AC room are you looking for?", 'bot', [
+                    { text: "Deluxe AC", action: confirmRoomBooking },
+                    { text: "Suite AC", action: confirmRoomBooking }
+                ]);
+                conversationState = 'ac_type_booking';
+            } else if (type === "Non-AC Room") {
+                addMessage("Okay, what type of Non-AC room?", 'bot', [
+                    { text: "Single Non-AC", action: confirmRoomBooking },
+                    { text: "Double Non-AC", action: confirmRoomBooking }
+                ]);
+                conversationState = 'non_ac_type_booking';
+            }
+        }
 
+        function confirmRoomBooking(roomType) {
+            addMessage(`You selected: ${roomType}`, 'user'); // Show user's choice
+            currentRoomType = roomType; // Update with specific room type
+            addMessage(`You want to book a **${currentRoomType}**. Please provide your desired **number of nights** for the stay.`, 'bot');
+            conversationState = 'booking_nights';
+        }
 
+        // --- Check Availability Flow ---
+        checkAvailabilityBtn.addEventListener('click', () => {
+            addMessage("Please tell me your desired **check-in and check-out dates** (e.g., '2025-07-01 to 2025-07-05').", 'bot');
+            conversationState = 'availability_dates';
+        });
+
+        // --- Support Flow ---
+        supportBtn.addEventListener('click', () => {
+            addMessage("Please describe your issue in detail. Our support team will get back to you shortly. You can also call us directly at **+91 1234567890**.", 'bot');
+            conversationState = 'support';
+        });
+
+        // Load initial info when the page loads
+        document.addEventListener('DOMContentLoaded', showInitialInfo);
+
+    </script>
+</body>
+</html>
